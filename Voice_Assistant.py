@@ -13,7 +13,7 @@ import requests
 from newspaper import Article
 
 load_dotenv()
-chat = ChatGooglePalm(google_api_key=os.getenv("GOOGLE_API_KEY"), temperature=0.7)
+chat = ChatGooglePalm(google_api_key=os.getenv("GOOGLE_API_KEY"))
 
 
 # this method is for taking the commands
