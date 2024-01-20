@@ -9,6 +9,8 @@ from langchain.chat_models import ChatGooglePalm
 from langchain.schema import (
     HumanMessage
 )
+import requests
+from newspaper import Article
 
 load_dotenv()
 chat = ChatGooglePalm(google_api_key=os.getenv("GOOGLE_API_KEY"), temperature=0.7)
@@ -45,7 +47,6 @@ def takeCommand():
 
         return Query
 
-
 def speak(audio):
     engine = pyttsx3.init()
     # getter method(gets the current value of engine property)
@@ -61,6 +62,55 @@ def speak(audio):
     # Blocks while processing all the currently queued commands
     engine.runAndWait()
 
+def articleNarration():
+    headers = {
+        "User-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36"
+    }
+
+    article_url = "https://www.gadgets360.com/news"
+    print("\n")
+
+    session = requests.Session()
+
+    try:
+        response = session.get(article_url, headers=headers, timeout=10)
+
+        if response.status_code == 200:
+            article = Article(article_url)
+            article.download()
+            article.parse()
+
+            print(f"Title: {article.title}")
+            # print(f"Text: {article.text}")
+
+        else:
+            print(f"Failed to fetch article at {article_url}")
+
+    except Exception as e:
+        print(f"Error occured while fetching article at {article_url}: {e}")
+
+    article_title = article.title
+    article_text = article.text
+
+    template = """You are a very good assistant that summarizes online articles.
+
+    Here's the article you want to summarize.
+
+    ==================
+    Title: {article_title}
+
+    {article_text}
+    ==================
+
+    Now, provide a summarized version of the article in a bulleted list format.
+    """
+
+    prompt = template.format(article_title=article.title, article_text=article.text)
+
+    messages = [HumanMessage(content=prompt)]
+    summary = chat(messages)
+    print(summary.content)
+    speak(summary.content)
 
 def tellDay():
     # This function is for telling the day of the week
@@ -160,12 +210,9 @@ def Take_query():
             speak("According to wikipedia")
             speak(result)
 
-        elif "tell me a joke" in query:
-            template = """You are a expert in telling one liner jokes. Your job is to tell a one liner joke based on user query."""
-            messages = [HumanMessage(content=template)]
-            summary = chat(messages)
-            print(summary.content)
-            speak(summary.content)
+        elif "today's tech news" in query:
+            articleNarration()
+            continue
 
         # this will exit and terminate the program
         elif "go back to sleep" in query:
