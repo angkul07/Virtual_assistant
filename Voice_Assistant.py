@@ -3,6 +3,15 @@ import speech_recognition as sr
 import webbrowser
 import datetime
 import pyscreenshot as ps
+from dotenv import load_dotenv
+import os
+from langchain.chat_models import ChatGooglePalm
+from langchain.schema import (
+    HumanMessage
+)
+
+load_dotenv()
+chat = ChatGooglePalm(google_api_key=os.getenv("GOOGLE_API_KEY"), temperature=0.7)
 
 
 # this method is for taking the commands
@@ -107,6 +116,21 @@ def Take_query():
             webbrowser.open("www.google.com")
             continue
 
+        elif "show me some mr beast videos" in query:
+            speak("Opening videos")
+            webbrowser.open("www.youtube.com/@MrBeast")
+            continue
+
+        elif "I want to read some tech news" in query:
+            speak("Opening news")
+            webbrowser.open("https://www.gadgets360.com/news")
+            continue
+
+        elif "coffee shop near me" in query:
+            speak("These are the coffee shop near you.")
+            webbrowser.open("https://www.google.com/maps/search/coffee+shop+near+me")
+            continue
+
         elif "which day it is" in query:
             tellDay()
             continue
@@ -122,6 +146,26 @@ def Take_query():
             speak("Taking a screenshot")
             im = ps.grab()
             im.save("fullscreen.png")
+
+        elif "from wikipedia" in query:
+            # if any one wants to have a information
+            # from wikipedia
+            speak("Checking the wikipedia ")
+            query = query.replace("wikipedia", "")
+
+            # it will give the summary of 4 lines from
+            # wikipedia we can increase and decrease
+            # it also.
+            result = wikipedia.summary(query, sentences=4)
+            speak("According to wikipedia")
+            speak(result)
+
+        elif "tell me a joke" in query:
+            template = """You are a expert in telling one liner jokes. Your job is to tell a one liner joke based on user query."""
+            messages = [HumanMessage(content=template)]
+            summary = chat(messages)
+            print(summary.content)
+            speak(summary.content)
 
         # this will exit and terminate the program
         elif "go back to sleep" in query:
