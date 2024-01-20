@@ -1,3 +1,8 @@
 pyttsx3
 SpeechRecognition
 wikipedia
+langchain==0.0.339
+google-generativeai
+tiktoken
+python-dotenv
+newspaper3k
