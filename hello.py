@@ -11,9 +11,11 @@ from langchain.schema import HumanMessage
 import requests
 import tkinter as tk
 from tkinter import ttk
-from tkinter import LEFT, BOTH, SUNKEN
+from tkinter import messagebox
+from tkinter import font
 from PIL import Image, ImageTk
 from threading import Thread
+import sys
 
 load_dotenv()
 chat = ChatGooglePalm(google_api_key=os.getenv("GOOGLE_API_KEY"))
@@ -27,43 +29,18 @@ HEADING_FONT = ("white", 24, "bold")
 INSTRUCTION_FONT = ("Helvetica", 14)
 
 
-# this method is for taking the commands
-# and recognizing the command from the
-# speech_Recognition module we will use
-# the recongizer method for recognizing
-def takeCommand():
-    r = sr.Recognizer()
+# --- classes ---
 
-    # from the speech_Recognition module
-    # we will use the Microphone module
-    # for listening the command
-    with sr.Microphone() as source:
-        print("Listening")
+class Redirect():
+    
+    def __init__(self, widget):
+        self.widget = widget
 
-        # seconds of non-speaking audio before
-        # a phrase is considered complete
-        r.pause_threshold = 0.7
-        audio = r.listen(source)
-
-        # Now we will be using the try and catch
-        # method so that if sound is recognized
-        # it is good else we will have exception
-        # handling
-        try:
-            print("Recognizing")
-
-            # for Listening the command in indian
-            # english we can also use 'hi-In'
-            # for hindi recognizing
-            Query = r.recognize_google(audio, language="en-in")
-            print("the command is printed=", Query)
-
-        except Exception as e:
-            print(e)
-            print("Say that again sir")
-            return "None"
-
-        return Query
+    def write(self, text):
+        self.widget.insert('end', text)
+        #self.widget.see('end') # autoscroll
+    
+# --- main ---  
 
 
 def speak(audio):
@@ -82,6 +59,46 @@ def speak(audio):
     # Blocks while processing all the currently
     # queued commands
     engine.runAndWait()
+
+# this method is for taking the commands
+# and recognizing the command from the
+# speech_Recognition module we will use
+# the recongizer method for recognizing
+def takeCommand():
+    r = sr.Recognizer()
+
+    # from the speech_Recognition module
+    # we will use the Microphone module
+    # for listening the command
+    with sr.Microphone() as source:
+        print("Now Listening")
+        speak("Now Listening")
+        # seconds of non-speaking audio before
+        # a phrase is considered complete
+        r.pause_threshold = 0.7
+        audio = r.listen(source)
+
+        # Now we will be using the try and catch
+        # method so that if sound is recognized
+        # it is good else we will have exception
+        # handling
+        try:
+            print("Recognizing")
+            
+            # for Listening the command in indian
+            # english we can also use 'hi-In'
+            # for hindi recognizing
+            Query = r.recognize_google(audio, language="en-in")
+            print("the command is printed=", Query)
+
+        except Exception as e:
+            print(e)
+            print("Say that again sir")
+            speak("Please say that again")
+            return "None"
+
+        return Query
+
 
 
 entry = None
@@ -180,7 +197,7 @@ def Hello():
     # This function is for when the assistant
     # is called it will say hello and then
     # take query
-    speak("hello sir I am your desktop assistant. Tell me how may I help you")
+    speak("hello, I am your friendly desktop assistant Jarvis. Tell me how may I help you")
 
 
 def Take_query():
@@ -231,7 +248,7 @@ def Take_query():
             )
             continue
 
-        elif "which day is today" in query:
+        elif "which day is it" in query:
             tellDay()
             continue
 
@@ -261,7 +278,7 @@ def Take_query():
             continue
 
         # this will exit and terminate the program
-        elif "go back to sleep" in query:
+        elif "go back to sleep jarvis" in query:
             speak("Bye Sir")
             exit()
 
@@ -277,13 +294,14 @@ def start_voice_assistant():
     Take_query()
     stop_flag = False  # Reset the flag to False when starting the voice assistant
 
-
 def main():
     # Create the main GUI window
     root = tk.Tk()
     root.resizable(True, True)
     root.title("Voice Assistant")
-    root.geometry("500x700")
+    root.geometry("1366x768")
+    root.minsize(800,600)
+    root.maxsize(1366, 768)
     root.configure(bg=BG_COLOR)
 
     def on_button_click():
@@ -296,41 +314,58 @@ def main():
         else:
             stop_voice_assistant()
 
-    def resize_image(event):
-        new_width = event.width
-        new_height = event.height
-        image = copy_of_image.resize((new_width, new_height))
-        photo = ImageTk.PhotoImage(image)
-        label.config(image = photo)
-        label.image = photo #avoid garbage collection
+    highlightFont = font.Font(family='Helvetica', name='appHighlightFont', size=16, weight='bold')
 
     # Load and set the background image
-    background_image = Image.open("/home/angkul/Desktop/JarvisAI/3425171.jpg")
+    background_image = Image.open("/home/angkul/Desktop/JarvisAI/abstract-equalizer.jpg")
     background_photo = ImageTk.PhotoImage(background_image)
     background_label = ttk.Label(root, image=background_photo)
     background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
     f1 = ttk.Frame(root)
     f1.pack(pady=100)  # Add some padding to the frame to center it vertically
+    def onClick(): 
+        tk.messagebox.showinfo("Instructions",  """Use these instructions to use the voice assistant
+Please make sure you are connected to internet
+1. Say 'open google': opens a web browser
+2. Say 'show me some videos': opens youtube
+3. Say 'I want to read a tech news': open gadgets360.com/news
+4. Say 'coffee shop near me': show all the coffee shop near you
+5. Say 'where is {followed by place name}: give the location of that place
+6. Say 'which day is it': tell you the today's day
+7. Say 'tell me the time': tell you the current time
+8. Say 'from wikipedia {followed by your query}: search the result from wikipedia.com
+9. Say 'tell me your name': voice assistant tell you its name
+10. Say 'today's tech news': Summarize the top tech news around the gloab with the help of ai
+""") 
+    
+    # Create a Button 
+    button = tk.Button(root, text="Instructions", command=onClick, height=2, width=10) 
+    
+    # Set the position of button on the top of window. 
+    button.pack(side='top') 
+    # def open_popup():
+    #     top= Toplevel(root)
+    #     top.geometry("750x250")
+    #     top.title("Instructions")
+    #     Label(top, text= "Please follow the following instructions to use Jarvis: 1. Say 'open google': It will open a web browser", font=('Mistral 18 bold')).place(x=15,y=5)
+
+    # ttk.Button(root, text= "Instructions", command= open_popup).pack()
 
     # Heading
     heading_label = ttk.Label(
-        root, text="Voice Assistant", font=HEADING_FONT, background=BG_COLOR
+        root, text="Voice Assistant", font=highlightFont, background=None
     )
     heading_label.pack(pady=20)
 
     global entry
-    f1 = ttk.Frame(root)
-    f1.pack()
-    entry = ttk.Entry(f1, width=30)
-    entry.pack(pady=10)
 
     # Instruction
     instruction_label = ttk.Label(
         root,
         text="Click the button below to start the Voice Assistant.",
-        font=INSTRUCTION_FONT,
-        background=BG_COLOR,
+        font=highlightFont,
+        background="white",
     )
     instruction_label.pack(pady=10)
 
@@ -347,10 +382,14 @@ def main():
     style = ttk.Style(root)
     style.configure(
         "VoiceAssistant.TButton",
-        font=BUTTON_FONT,
+        font=highlightFont,
         background=BUTTON_COLOR,
         foreground=BUTTON_FOREGROUND,
     )
+
+    text = tk.Text(root)
+    text.pack()
+    sys.stdout = Redirect(text)
 
     # Run the GUI main loop
     root.mainloop()
